@@ -1,0 +1,7 @@
+SLOs:
+ - url: "www.example.com"
+   successful-responses-SLO: 0.9
+   fast-responses-SLO: 0.9
+ - url: "www.example.com"
+   successful-responses-SLO: 0.9
+   fast-responses-SLO: 0.9
