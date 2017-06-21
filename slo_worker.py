@@ -1,8 +1,20 @@
+import argparse
 import os
 
 
+def get_parser()
+    parser = argparse.ArgumentParser(description="SLO worker")
+    parser.add_argument('--daemon', dest='daemon',
+                        default=False, action='store_true',
+                        help='Daemonize the process')
+
+    raise NotImplementedError
+
+    return parser
+
 class SloWorker:
     """SloWorker periodically pools URLs to calculate their SLIs
+    This class is more of a namespace, given its methods are mostly static
 
     Args:
         refresh_time (int): The refreshing time after which the worker
