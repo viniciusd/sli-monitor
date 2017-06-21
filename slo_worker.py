@@ -2,15 +2,14 @@ import argparse
 import os
 
 
-def get_parser()
+def get_parser():
     parser = argparse.ArgumentParser(description="SLO worker")
     parser.add_argument('--daemon', dest='daemon',
                         default=False, action='store_true',
                         help='Daemonize the process')
 
-    raise NotImplementedError
-
     return parser
+
 
 class SloWorker:
     """SloWorker periodically pools URLs to calculate their SLIs
@@ -77,6 +76,15 @@ class SloWorker:
         """
         pass
 
+    def daemonize(self):
+        """ Function that daemonizes the worker
+
+        Returns:
+            PID of the process
+
+        """
+        raise NotImplementedError('Daemon behavior yet not implemented')
+
     def run(self):
         """ Application loop
         It will call the other methods, doing requests peridocally and updating
@@ -85,7 +93,22 @@ class SloWorker:
         """
         pass
 
+    def stop(self):
+        """ Function that stops the worker
+
+        """
+        pass
+
 if __name__ == '__main__':
+    parser = get_parser()
+    args = parser.parse_args()
+
     worker = SloWorker(refresh_time=os.getenv('SLI_REFRESH_TIME'))
 
-    worker.run()
+    if args.daemon:
+        pid = worker.daemonize()
+
+    try:
+        worker.run()
+    except KeyboardInterrupt:
+        worker.stop()
