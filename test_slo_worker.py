@@ -40,7 +40,7 @@ class SloWorkerTest(unittest.TestCase):
 
     def test_parse_into_slo_list(self):
         config = """SLOs:
-                         - url: "www.example.com"
+                         - url: "http://www.example.com"
                            successful-responses-SLO: 0.9
                            fast-responses-SLO: 0.9
                  """
@@ -48,7 +48,7 @@ class SloWorkerTest(unittest.TestCase):
 
         slo = slos.pop()
 
-        self.assertEqual("www.example.com", slo.url)
+        self.assertEqual("http://www.example.com", slo.url)
         self.assertEqual(0.9, slo.successful_responses)
         self.assertEqual(0.9, slo.fast_responses)
 
