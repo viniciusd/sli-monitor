@@ -45,7 +45,7 @@ class SloWorker:
         Args:
             config_file: Name of the configuration file
         """
-        conn = utils.get_db_connection()
+        self.conn = utils.get_db_connection()
 
         last_read_config = datetime.utcfromtimestamp(0)
 
@@ -58,7 +58,7 @@ class SloWorker:
                 slos = utils.get_configurations(config_file)
                 last_read_config = datetime.now()
 
-            utils.recalculate_slis(conn,
+            utils.recalculate_slis(self.conn,
                                   utils.do_requests(utils.get_slo_urls(slos))
                                   )
 
@@ -68,7 +68,7 @@ class SloWorker:
         """ Function that stops the worker
 
         """
-        pass
+        self.conn.close()
 
 if __name__ == '__main__':
     parser = get_parser()
