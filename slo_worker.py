@@ -1,6 +1,7 @@
 import argparse
 import os
-
+import requests
+import time
 
 def get_parser():
     parser = argparse.ArgumentParser(description="SLO worker")
@@ -13,7 +14,8 @@ def get_parser():
 
 class SloWorker:
     """SloWorker periodically pools URLs to calculate their SLIs
-    This class is more of a namespace, given its methods are mostly static
+    This class is more of a namespace, given its methods are mostly static.
+    These static methods may move to a utils module in the future
 
     Args:
         refresh_time (int): The refreshing time after which the worker
@@ -65,7 +67,9 @@ class SloWorker:
             A list of respones. Each response has its URL, a status code and
             a response time
         """
-        pass
+        start = time.time()
+        r = requests.get(url)
+        roundtrip = time.time() - start
 
     @staticmethod
     def recalculate_slis(db_connection):
@@ -85,7 +89,7 @@ class SloWorker:
         """
         raise NotImplementedError('Daemon behavior yet not implemented')
 
-    def run(self):
+    def start(self):
         """ Application loop
         It will call the other methods, doing requests peridocally and updating
         the SLIs
@@ -109,6 +113,6 @@ if __name__ == '__main__':
         pid = worker.daemonize()
 
     try:
-        worker.run()
+        worker.start()
     except KeyboardInterrupt:
         worker.stop()
