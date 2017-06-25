@@ -5,6 +5,8 @@ import time
 from collections import namedtuple
 
 import requests
+import yaml
+
 
 def get_parser():
     parser = argparse.ArgumentParser(description="SLO worker")
@@ -16,6 +18,7 @@ def get_parser():
 
 
 Response = namedtuple('Response', ['url', 'status', 'time'])
+Slo = namedtuple('Slo', ['url', 'successful_responses', 'fast_responses'])
 
 
 class SloWorker:
@@ -45,7 +48,8 @@ class SloWorker:
             A list of parsed SLOs. Check parse_into_slo_list for more details
 
         """
-        pass
+        with open(filename, 'r') as stream:
+            return parse_into_slo_list(stream)
 
     @staticmethod
     def parse_into_slo_list(buffer):
@@ -59,7 +63,15 @@ class SloWorker:
             and fast responses.
 
         """
-        pass
+        slos = []
+        for slo in yaml.load(buffer)['SLOs']:
+            slos.append(
+                        Slo(slo['url'],
+                            float(slo['successful-responses-SLO']),
+                            float(slo['fast-responses-SLO'])
+                            )
+                        )
+        return slos
 
     @staticmethod
     def do_requests(urls):

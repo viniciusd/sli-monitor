@@ -1,6 +1,6 @@
 import unittest
 
-from slo_worker import  SloWorker
+from slo_worker import SloWorker
 
 class SloWorkerTest(unittest.TestCase):
    
@@ -36,6 +36,21 @@ class SloWorkerTest(unittest.TestCase):
 
         self.assertEqual(1, len(slos))
         self.assertEqual(429, slos[0].status)
+
+
+    def test_parse_into_slo_list(self):
+        config = """SLOs:
+                         - url: "www.example.com"
+                           successful-responses-SLO: 0.9
+                           fast-responses-SLO: 0.9
+                 """
+        slos = self.worker.parse_into_slo_list(config)
+        
+        slo = slos.pop()
+
+        self.assertEqual("www.example.com", slo.url)
+        self.assertEqual(0.9, slo.successful_responses)
+        self.assertEqual(0.9, slo.fast_responses)
 
 
     class _AssertDoesNotRaiseContext(unittest.case._AssertRaisesBaseContext):
