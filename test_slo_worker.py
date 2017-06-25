@@ -2,8 +2,9 @@ import unittest
 
 from slo_worker import SloWorker
 
+
 class SloWorkerTest(unittest.TestCase):
-   
+
     def setUp(self):
         self.worker = SloWorker()
 
@@ -17,11 +18,11 @@ class SloWorkerTest(unittest.TestCase):
         self.assertNotIsInstance(slos, str)
 
         with self.assertDoesNotRaise(TypeError):
-           _ = (e for e in slos)
+            _ = (e for e in slos)
 
     def test_do_request_when_no_urls_given(self):
         urls = []
-        
+
         slos = self.worker.do_requests(urls)
 
         self.assertFalse(slos)
@@ -37,7 +38,6 @@ class SloWorkerTest(unittest.TestCase):
         self.assertEqual(1, len(slos))
         self.assertEqual(429, slos[0].status)
 
-
     def test_parse_into_slo_list(self):
         config = """SLOs:
                          - url: "www.example.com"
@@ -45,13 +45,12 @@ class SloWorkerTest(unittest.TestCase):
                            fast-responses-SLO: 0.9
                  """
         slos = self.worker.parse_into_slo_list(config)
-        
+
         slo = slos.pop()
 
         self.assertEqual("www.example.com", slo.url)
         self.assertEqual(0.9, slo.successful_responses)
         self.assertEqual(0.9, slo.fast_responses)
-
 
     class _AssertDoesNotRaiseContext(unittest.case._AssertRaisesBaseContext):
         """A context manager used to implement TestCase.assertRaises* methods.
@@ -87,4 +86,4 @@ class SloWorkerTest(unittest.TestCase):
 
     def assertDoesNotRaise(self, expected_exception, *args, **kwargs):
         context = self._AssertDoesNotRaiseContext(expected_exception, self)
-        return context.handle('assertDoesNotRaise', args, kwargs) 
+        return context.handle('assertDoesNotRaise', args, kwargs)
