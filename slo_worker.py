@@ -1,8 +1,10 @@
 import argparse
 import os
+import sqlite3 as sqlite
 import time
 
 from collections import namedtuple
+from datetime import datetime
 
 import requests
 import yaml
@@ -36,8 +38,8 @@ class SloWorker:
         # That's why it is not default to 5 already in the definition
         self.refresh_time = 5 if refresh_time is None else refresh_time
 
-    @staticmethod
-    def get_configurations(filename):
+    @classmethod
+    def get_configurations(cls, filename):
         """ Function that reads the configurations file and invokes the parser
             function
 
@@ -49,7 +51,7 @@ class SloWorker:
 
         """
         with open(filename, 'r') as stream:
-            return parse_into_slo_list(stream)
+            return cls.parse_into_slo_list(stream)
 
     @staticmethod
     def parse_into_slo_list(buffer):
@@ -88,16 +90,29 @@ class SloWorker:
         for url in urls:
             start = time.time()
             r = requests.get(url)
-            roundtrip = time.time() - start
+            roundtrip = (time.time() - start)*1000
             responses.append(Response(url, r.status_code, roundtrip))
         return responses
 
     @staticmethod
-    def recalculate_slis(db_connection):
+    def get_slo_urls(slos):
+        """ Function that gets the URLs from a list of SLOs
+
+        Args:
+            urls: List of SLOs
+
+        Returns:
+            A list of urls
+        """
+        return map(lambda slo: slo.url, slos)
+
+    @staticmethod
+    def recalculate_slis(db_connection, responses):
         """ Function that recalculates the SLIs
 
         Args:
             db_connection: Database connection
+            responses: List of responses to update the database
         """
         pass
 
@@ -110,13 +125,33 @@ class SloWorker:
         """
         raise NotImplementedError('Daemon behavior yet not implemented')
 
-    def start(self):
+    def start(self, config_file='config.yaml'):
         """ Application loop
         It will call the other methods, doing requests peridocally and updating
         the SLIs
 
+        Args:
+            config_file: Name of the configuration file
         """
-        pass
+        self.conn = sqlite.connect('slis.db')
+        c = self.conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS slis 
+                             (url text, successful_responses int, fast_responses int, total_responses int)''')
+
+        last_read_config = datetime.utcfromtimestamp(0)
+
+        while True:
+            last_modified_config = datetime.utcfromtimestamp(
+                                                             os.path.getmtime(config_file
+                                                                              )
+                                                             ) 
+            if last_read_config < last_modified_config:
+                slos = self.get_configurations(config_file)
+                last_read_config = datetime.now()
+
+            print(self.do_requests(self.get_slo_urls(slos)))
+
+            time.sleep(self.refresh_time)
 
     def stop(self):
         """ Function that stops the worker
