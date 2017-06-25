@@ -107,14 +107,57 @@ class SloWorker:
         return map(lambda slo: slo.url, slos)
 
     @staticmethod
-    def recalculate_slis(db_connection, responses):
+    def parse_response(response):
+        """ Function that parses the response and checks whether it was
+            successful and fast
+
+        Args:
+            response: A response object
+
+        Returns:
+            A tuple containing the url, and elements that confirm if the
+            response was succesful and fast
+        """
+        url = response.url
+        is_successful = 200 <= response.status <= 499
+        is_fast = response.time <= 100
+        return url, is_successful, is_fast
+
+    @classmethod
+    def recalculate_slis(cls, db_connection, responses):
         """ Function that recalculates the SLIs
 
         Args:
             db_connection: Database connection
             responses: List of responses to update the database
         """
-        pass
+        c = db_connection.cursor()
+
+        for response in responses:
+            # FIXME: SQlite does not support ON DUPLICATE KEY
+            url, is_fast, is_successful = cls.parse_response(response)
+            c.execute("""INSERT INTO slis (url, successful_responses,
+                                           fast_responses, total_respones)
+                         VALUES(?, ?, ?, 1)
+                         ON DUPLICATE KEY UPDATE successful_responses=successfull_responses+?, fast_responses=fast_responses+?, total_responses=total_responses+1
+                      """,
+                      (url, is_successful, is_fast, is_successful, is_fast)
+                      )
+        db_connection.commit()
+
+    @staticmethod
+    def get_db_connection():
+        """ Function that gets a database connection
+
+        Returns:
+            A database connection
+        """
+        conn = sqlite.connect('slis.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS slis 
+                             (url text primary key not null, successful_responses int, fast_responses int, total_responses int)''')
+        conn.commit()
+        return conn
 
     def daemonize(self):
         """ Function that daemonizes the worker
@@ -133,11 +176,7 @@ class SloWorker:
         Args:
             config_file: Name of the configuration file
         """
-        conn = sqlite.connect('slis.db')
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS slis 
-                             (url text, successful_responses int, fast_responses int, total_responses int)''')
-        c.commit()
+        conn = self.get_db_connection()
 
         last_read_config = datetime.utcfromtimestamp(0)
 
@@ -150,7 +189,9 @@ class SloWorker:
                 slos = self.get_configurations(config_file)
                 last_read_config = datetime.now()
 
-            print(self.do_requests(self.get_slo_urls(slos)))
+            self.recalculate_slis(conn,
+                                  self.do_requests(self.get_slo_urls(slos))
+                                  )
 
             time.sleep(self.refresh_time)
 
