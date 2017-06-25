@@ -125,6 +125,17 @@ def recalculate_slis(db_connection, responses):
                   )
     db_connection.commit()
 
+def get_slos_from_db(db_connection):
+    """ Function that gets SLOs from database
+
+    Returns:
+        List of SLOs
+    """
+    c = db_connection.cursor()
+    c.execute("SELECT url, successful_responses/total_responses, fast_responses/total_responses FROM slis")
+
+    return c.fetchall()
+
 def get_db_connection():
     """ Function that gets a database connection
 
@@ -138,4 +149,28 @@ def get_db_connection():
     conn.commit()
     return conn
 
+def is_fast_enough(url, rate, config_file='config.yaml'):
+    """ Checks whether the SLO matches the SLI for speed 
 
+    Returns:
+        A boolean
+    """
+    slos = get_configurations(config_file)
+
+    for slo in slos:
+        if slo.url == url and rate >= slo.fast_responses:
+            return True
+    return False
+
+def is_successful_enough(url, rate, config_file='config.yaml'):
+    """ Checks whether the SLO matches the SLI for speed 
+
+    Returns:
+        A boolean
+    """
+    slos = get_configurations(config_file)
+
+    for slo in slos:
+        if slo.url == url and rate >= slo.successful_responses:
+            return True
+    return False
