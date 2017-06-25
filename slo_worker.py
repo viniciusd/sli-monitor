@@ -83,7 +83,7 @@ class SloWorker:
             urls: List of URLs
 
         Returns:
-            A list of respones. Each response has its URL, a status code and
+            A list of responses. Each response has its URL, a status code and
             a response time
         """
         responses = []
@@ -134,14 +134,29 @@ class SloWorker:
         c = db_connection.cursor()
 
         for response in responses:
-            # FIXME: SQlite does not support ON DUPLICATE KEY
             url, is_fast, is_successful = cls.parse_response(response)
-            c.execute("""INSERT INTO slis (url, successful_responses,
-                                           fast_responses, total_respones)
-                         VALUES(?, ?, ?, 1)
-                         ON DUPLICATE KEY UPDATE successful_responses=successfull_responses+?, fast_responses=fast_responses+?, total_responses=total_responses+1
+            c.execute("""
+                       INSERT
+                           OR IGNORE
+                       INTO
+                           slis (url, successful_responses,
+                                 fast_responses, total_responses
+                                 )
+                       VALUES
+                           (?,0,0,0) 
                       """,
-                      (url, is_successful, is_fast, is_successful, is_fast)
+                      (url,)
+                      )
+            c.execute("""
+                       UPDATE slis
+                       SET
+                           successful_responses=successful_responses+?,
+                           fast_responses=fast_responses+?,
+                           total_responses=total_responses+1
+                       WHERE
+                           url=?
+                       """,
+                       (is_successful, is_fast, url)
                       )
         db_connection.commit()
 
