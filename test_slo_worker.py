@@ -17,7 +17,7 @@ class SloWorkerTest(unittest.TestCase):
         self.assertNotIsInstance(slos, str)
 
         with self.assertDoesNotRaise(TypeError):
-           _ = (e for e in my_object)
+           _ = (e for e in slos)
 
     def test_do_request_when_no_urls_given(self):
         urls = []
@@ -27,15 +27,15 @@ class SloWorkerTest(unittest.TestCase):
         self.assertFalse(slos)
         self.assertIsInstance(slos, list)
 
-    def test_do_request_when_status_code_is_400(self):
+    def test_do_request_when_status_code_is_429(self):
         urls = [
-                'http://www.fakeresponse.com/api?status=400',
+                'http://www.fakeresponse.com/api?status=429',
                 ]
 
         slos = self.worker.do_requests(urls)
 
         self.assertEqual(1, len(slos))
-        self.assertEqual(400, slos[0].status)
+        self.assertEqual(429, slos[0].status)
 
 
     class _AssertDoesNotRaiseContext(unittest.case._AssertRaisesBaseContext):

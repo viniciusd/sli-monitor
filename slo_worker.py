@@ -1,7 +1,10 @@
 import argparse
 import os
-import requests
 import time
+
+from collections import namedtuple
+
+import requests
 
 def get_parser():
     parser = argparse.ArgumentParser(description="SLO worker")
@@ -10,6 +13,9 @@ def get_parser():
                         help='Daemonize the process')
 
     return parser
+
+
+Response = namedtuple('Response', ['url', 'status', 'time'])
 
 
 class SloWorker:
@@ -21,7 +27,6 @@ class SloWorker:
         refresh_time (int): The refreshing time after which the worker
                             will redo the requests
     """
-
     def __init__(self, *, refresh_time=None):
 
         # It checks for None in case os.getenv was used to pass the argument
@@ -67,9 +72,13 @@ class SloWorker:
             A list of respones. Each response has its URL, a status code and
             a response time
         """
-        start = time.time()
-        r = requests.get(url)
-        roundtrip = time.time() - start
+        responses = []
+        for url in urls:
+            start = time.time()
+            r = requests.get(url)
+            roundtrip = time.time() - start
+            responses.append(Response(url, r.status_code, roundtrip))
+        return responses
 
     @staticmethod
     def recalculate_slis(db_connection):
