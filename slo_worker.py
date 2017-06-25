@@ -133,10 +133,11 @@ class SloWorker:
         Args:
             config_file: Name of the configuration file
         """
-        self.conn = sqlite.connect('slis.db')
-        c = self.conn.cursor()
+        conn = sqlite.connect('slis.db')
+        c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS slis 
                              (url text, successful_responses int, fast_responses int, total_responses int)''')
+        c.commit()
 
         last_read_config = datetime.utcfromtimestamp(0)
 
