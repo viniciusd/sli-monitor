@@ -3,7 +3,7 @@ import unittest
 import utils
 
 
-class SloWorkerTest(unittest.TestCase):
+class UtilsTest(unittest.TestCase):
 
     def test_do_request_returns_a_sequence(self):
         urls = [
