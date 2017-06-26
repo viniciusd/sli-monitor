@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+.pass {
+    color: green;
+}
+
+.fail {
+    color: red;
+}
+</style>
+</head>
+<body>
+
+<table>
+    <tr>
+        <th>Url</th>
+        <th>Fast responses</th>
+        <th>Successful responses</th>
+    </tr>
+    
+    {% for slo in slos %}
+    <tr>
+        <td >{{slo[0]}}</td>
+        <td class={% if slo[2] %}"pass"{%else%}"fail"{%endif%}>{{slo[1]}}</td>
+        <td class={% if slo[4] %}"pass"{%else%}"fail"{%endif%}>{{slo[3]}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
+

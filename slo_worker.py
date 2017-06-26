@@ -6,6 +6,7 @@ from datetime import datetime
 
 import utils
 
+
 def get_parser():
     parser = argparse.ArgumentParser(description="SLO worker")
     parser.add_argument('--daemon', dest='daemon',
@@ -51,16 +52,17 @@ class SloWorker:
 
         while True:
             last_modified_config = datetime.utcfromtimestamp(
-                                                             os.path.getmtime(config_file
+                                                             os.path.getmtime(
+                                                                              config_file
                                                                               )
-                                                             ) 
+                                                             )
             if last_read_config < last_modified_config:
                 slos = utils.get_configurations(config_file)
                 last_read_config = datetime.now()
 
             utils.recalculate_slis(self.conn,
-                                  utils.do_requests(utils.get_slo_urls(slos))
-                                  )
+                                   utils.do_requests(utils.get_slo_urls(slos))
+                                   )
 
             time.sleep(self.refresh_time)
 

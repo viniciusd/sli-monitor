@@ -6,8 +6,10 @@ from collections import namedtuple
 import requests
 import yaml
 
+
 Response = namedtuple('Response', ['url', 'status', 'time'])
 Slo = namedtuple('Slo', ['url', 'successful_responses', 'fast_responses'])
+
 
 def get_configurations(filename):
     """ Function that reads the configurations file and invokes the parser
@@ -22,6 +24,7 @@ def get_configurations(filename):
     """
     with open(filename, 'r') as stream:
         return parse_into_slo_list(stream)
+
 
 def parse_into_slo_list(buffer):
     """ Function that parses a buffer into a list of SLOs
@@ -44,6 +47,7 @@ def parse_into_slo_list(buffer):
                     )
     return slos
 
+
 def do_requests(urls):
     """ Function that do requests to the specified URLs
 
@@ -62,6 +66,7 @@ def do_requests(urls):
         responses.append(Response(url, r.status_code, roundtrip))
     return responses
 
+
 def get_slo_urls(slos):
     """ Function that gets the URLs from a list of SLOs
 
@@ -72,6 +77,7 @@ def get_slo_urls(slos):
         A list of urls
     """
     return map(lambda slo: slo.url, slos)
+
 
 def parse_response(response):
     """ Function that parses the response and checks whether it was
@@ -88,6 +94,7 @@ def parse_response(response):
     is_successful = 200 <= response.status <= 499
     is_fast = response.time <= 100
     return url, is_successful, is_fast
+
 
 def recalculate_slis(db_connection, responses):
     """ Function that recalculates the SLIs
@@ -108,22 +115,23 @@ def recalculate_slis(db_connection, responses):
                              fast_responses, total_responses
                              )
                    VALUES
-                       (?,0,0,0) 
+                       (?,0,0,0)
                   """,
                   (url,)
                   )
         c.execute("""
-                   UPDATE slis
-                   SET
-                       successful_responses=successful_responses+?,
-                       fast_responses=fast_responses+?,
-                       total_responses=total_responses+1
-                   WHERE
-                       url=?
-                   """,
-                   (is_successful, is_fast, url)
+                  UPDATE slis
+                  SET
+                      successful_responses=successful_responses+?,
+                      fast_responses=fast_responses+?,
+                      total_responses=total_responses+1
+                  WHERE
+                      url=?
+                  """,
+                  (is_successful, is_fast, url)
                   )
     db_connection.commit()
+
 
 def get_slos_from_db(db_connection):
     """ Function that gets SLOs from database
@@ -136,6 +144,7 @@ def get_slos_from_db(db_connection):
 
     return c.fetchall()
 
+
 def get_db_connection():
     """ Function that gets a database connection
 
@@ -144,13 +153,14 @@ def get_db_connection():
     """
     conn = sqlite.connect('slis.db')
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS slis 
+    c.execute('''CREATE TABLE IF NOT EXISTS slis
                          (url text primary key not null, successful_responses int, fast_responses int, total_responses int)''')
     conn.commit()
     return conn
 
+
 def is_fast_enough(url, rate, config_file='config.yaml'):
-    """ Checks whether the SLO matches the SLI for speed 
+    """ Checks whether the SLO matches the SLI for speed
 
     Returns:
         A boolean
@@ -162,8 +172,9 @@ def is_fast_enough(url, rate, config_file='config.yaml'):
             return True
     return False
 
+
 def is_successful_enough(url, rate, config_file='config.yaml'):
-    """ Checks whether the SLO matches the SLI for speed 
+    """ Checks whether the SLO matches the SLI for speed
 
     Returns:
         A boolean
