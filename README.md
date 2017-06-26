@@ -52,3 +52,4 @@ Running index.py in its own screen session should be a better call to keep track
 * Add better layout to the web interface
 * Change the YAML schema in a way the url will be a dictionary instead of a list, where the url will be the key
 * Use web socket to get real time stats
+* Implement the daemon behavior to the slo worker
